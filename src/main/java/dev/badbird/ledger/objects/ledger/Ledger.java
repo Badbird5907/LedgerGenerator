@@ -8,6 +8,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 
 import java.time.Month;
 import java.util.*;
+import java.util.function.Consumer;
 
 @Data
 @AllArgsConstructor
@@ -24,11 +25,16 @@ public class Ledger {
             sheet.setColumnWidth(i, template.getColumnWidth(i));
         }
         CellStyle style = template.getRow(1).getCell(0).getCellStyle();
-        style.setAlignment(HorizontalAlignment.GENERAL);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
+        CellStyle bold = template.getRow(9).getCell(0).getCellStyle();
+        Consumer<CellStyle> updateStyles = cellStyle -> {
+            cellStyle.setBorderBottom(BorderStyle.THIN);
+            cellStyle.setBorderTop(BorderStyle.THIN);
+            cellStyle.setBorderLeft(BorderStyle.THIN);
+            cellStyle.setBorderRight(BorderStyle.THIN);
+            cellStyle.setAlignment(HorizontalAlignment.GENERAL);
+        };
+        updateStyles.accept(style);
+        updateStyles.accept(bold);
 
         List<Cell[]> templateHeader = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
@@ -63,12 +69,16 @@ public class Ledger {
                 cell.setCellStyle(style);
             }
             double balance = 0;
+            double ledgerTotalDr = 0;
+            double ledgerTotalCr = 0;
             Month lastMonth = null;
             for (LedgerTransaction transaction : ledger.getTransactions()) {
                 balance = transaction.applyToBal(balance);
                 totalBalance = transaction.applyToBal(totalBalance);
                 totalDr += transaction.getDr();
                 totalCr += transaction.getCr();
+                ledgerTotalDr += transaction.getDr();
+                ledgerTotalCr += transaction.getCr();
                 Row row = sheet.createRow(offset++);
                 Cell monthCell = row.createCell(0);
                 monthCell.setCellStyle(style);
@@ -102,29 +112,36 @@ public class Ledger {
                 balanceCell.setCellValue(Math.abs(balance));
                 balanceCell.setCellStyle(style);
             }
+            Row totalRow = sheet.createRow(offset++);
+            Cell totalCell = totalRow.createCell(0);
+            printTotal(cols, style, balance, ledgerTotalDr, ledgerTotalCr, totalRow, totalCell, bold);
         }
 
         Row totalRow = sheet.createRow(++offset);
         Cell totalCell = totalRow.createCell(0);
+        printTotal(cols, style, totalBalance, totalDr, totalCr, totalRow, totalCell, bold);
+
+    }
+
+    private static void printTotal(int cols, CellStyle style, double balance, double ledgerTotalDr, double ledgerTotalCr, Row totalRow, Cell totalCell, CellStyle bold) {
         totalCell.setCellValue("Total");
-        totalCell.setCellStyle(style);
+        totalCell.setCellStyle(bold);
         for (int i = 0; i < cols - 1; i++) {
             Cell cell = totalRow.createCell(i + 1);
             cell.setCellStyle(style);
         }
         Cell totalDrCell = totalRow.createCell(4);
-        totalDrCell.setCellValue(totalDr);
+        totalDrCell.setCellValue(ledgerTotalDr);
         totalDrCell.setCellStyle(style);
         Cell totalCrCell = totalRow.createCell(5);
-        totalCrCell.setCellValue(totalCr);
+        totalCrCell.setCellValue(ledgerTotalCr);
         totalCrCell.setCellStyle(style);
         Cell totalDrCrCell = totalRow.createCell(6);
-        totalDrCrCell.setCellValue(totalDr >= totalCr ? "Dr" : "Cr");
+        totalDrCrCell.setCellValue(ledgerTotalDr >= ledgerTotalCr ? "Dr" : "Cr");
         totalDrCrCell.setCellStyle(style);
         Cell totalBalanceCell = totalRow.createCell(7);
-        totalBalanceCell.setCellValue(Math.abs(totalBalance));
+        totalBalanceCell.setCellValue(Math.abs(balance));
         totalBalanceCell.setCellStyle(style);
-
     }
 
     private static Sheet applyTemplate(List<Cell[]> template, Sheet sheet, int offset, LedgerAccount account, List<CellRangeAddress> mergedRegions) {
