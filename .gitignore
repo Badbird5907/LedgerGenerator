@@ -1,4 +1,5 @@
 run/
+**.jar
 
 .gradle
 build/

@@ -16,6 +16,12 @@ dependencies {
     implementation("org.jxls:jxls-jexcel:1.0.9")
     implementation("org.dhatim:fastexcel-reader:0.15.3")
     implementation("org.dhatim:fastexcel:0.15.3")
+
+    // implementation("dev.badbird:SimilarityEngine:1.0-SNAPSHOT")
+    // simengine doesn't have libs bundled yet
+    implementation(files("D:\\Development\\random\\SimilarityEngine\\build\\libs\\SimilarityEngine-1.0-SNAPSHOT.jar"))
+    implementation(files("./libs/string-similarity-1.0.0.jar"))
+    implementation("com.google.guava:guava:33.0.0-jre")
 }
 
 tasks.test {
