@@ -16,7 +16,10 @@ public class Ledger {
     private LedgerAccount account;
     private List<LedgerTransaction> transactions;
 
-    public static void generateLedgerSheet(Collection<Ledger> ledgers, Workbook workbook) {
+    public static void generateLedgerSheet(Collection<Ledger> ledgerCol, Workbook workbook) {
+        List<Ledger> sortedLegders = new ArrayList<>(ledgerCol);
+        sortedLegders.sort(Comparator.comparing(o -> o.getAccount().getName()));
+
         Sheet sheet = workbook.createSheet("Ledger-New-" + System.currentTimeMillis());
         Sheet template = workbook.getSheet("Ledger-Template");
         // copy the template sheet to the new sheet
@@ -57,7 +60,7 @@ public class Ledger {
         double totalBalance = 0;
         double totalDr = 0;
         double totalCr = 0;
-        for (Ledger ledger : ledgers) {
+        for (Ledger ledger : sortedLegders) {
             applyTemplate(templateHeader, sheet, ++offset, ledger.getAccount(), template.getMergedRegions());
             offset += templateHeader.size();
             Row yearRow = sheet.createRow(offset++);

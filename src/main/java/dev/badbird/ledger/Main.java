@@ -11,6 +11,7 @@ import dev.badbird.ledger.objects.journal.Journal;
 import dev.badbird.ledger.objects.journal.JournalAccount;
 import dev.badbird.ledger.objects.journal.JournalEntry;
 import dev.badbird.ledger.objects.ledger.Ledger;
+import dev.badbird.ledger.objects.ledger.LedgerAccount;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -42,12 +43,7 @@ public class Main {
         Journal journal = new Journal().parse(sheet);
         System.out.println("Done parsing journal!");
         Map<JournalAccount, Ledger> ledger = journal.generateLedgers();
-        System.out.println("Accounts: " + ledger.size());
-        journal.getAccounts().forEach(
-                (name, account) -> {
-                    System.out.println("Account: " + name);
-                }
-        );
+        /*
         System.out.println("----------- Finding possible duplicates -----------");
         DiffChecker checker = new DiffCheckerImpl().init();
         Set<String> names = journal.getAccounts().keySet();
@@ -68,6 +64,7 @@ public class Main {
             }
             seen.add(name);
         }
+         */
         System.out.println("Done generating ledgers!");
         Ledger.generateLedgerSheet(ledger.values(), workbook);
         System.out.println("Done generating ledger sheet!");
